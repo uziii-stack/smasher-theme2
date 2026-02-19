@@ -13,17 +13,35 @@
     padding: 0;
 }
 
-html,
+html {
+    /*
+      CRITICAL: Never set overflow-x on html.
+      The html element IS the browser's main scroll container.
+      Setting overflow-x: hidden here silently creates a NEW scroll container
+      at the body level, which breaks position:sticky on .navbar.
+    */
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background: #ffffff;
     color: #1a1a1a;
     -webkit-font-smoothing: antialiased;
     line-height: 1.5;
-    overflow-x: hidden;
+    /*
+      overflow-x: clip — The correct fix.
+      UNLIKE overflow-x: hidden, 'clip' does NOT create a scroll container.
+      This means position:sticky on .navbar works perfectly while still
+      clipping any content that bleeds beyond the viewport width.
+      Supported in all modern browsers (Chrome 90+, Firefox 81+, Safari 16+).
+    */
+    overflow-x: clip;
     width: 100%;
-    position: relative;
+    margin: 0;
+    padding: 0;
 }
+
 
 
 ul {
@@ -55,6 +73,12 @@ button {
     z-index: 1000;
     display: flex;
     align-items: center;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar.is-sticky {
+    background: #ffffff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
 }
 
 .navbar__container {
@@ -277,16 +301,16 @@ button {
     border-radius: 8px;
     overflow: hidden;
     margin-bottom: 20px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px;
 }
 
 .mega-menu__img-wrap img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     transition: transform 0.3s ease;
 }
 
@@ -400,12 +424,13 @@ button {
     border: 1px solid #e0e0e0;
     border-radius: 12px;
     background: #fff;
-    padding: 20px 15px;
+    padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     transition: all 0.3s ease;
     text-decoration: none;
+    overflow: hidden;
 }
 
 .range-card:hover {
@@ -417,7 +442,7 @@ button {
 .range-card__img {
     width: 100%;
     aspect-ratio: 16 / 10;
-    margin-bottom: 15px;
+    margin-bottom: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -425,9 +450,9 @@ button {
 }
 
 .range-card__img img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     transition: transform 0.4s ease;
 }
 
@@ -444,6 +469,9 @@ button {
     gap: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    padding: 15px;
+    width: 100%;
+    justify-content: center;
 }
 
 .range-card__label i {
@@ -538,16 +566,18 @@ button {
     /* Mobile Drawer (Nav) */
     .navbar__nav {
         position: fixed;
-        top: 105px;
+        top: 70px;
         left: 0;
-        width: 55%;
-        height: calc(100vh - 105px);
+        width: 80%;
+        /* Slightly wider for better mobile usability */
+        height: calc(100vh - 70px);
         background: #fff;
         z-index: 1000;
         transform: translateX(-100%);
         transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         padding: 20px 0;
         overflow-y: auto;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.05);
     }
 
     .navbar.is-open .navbar__nav {
@@ -593,6 +623,8 @@ button {
     font-size: 13px;
     display: flex;
     align-items: center;
+    /* Contain the inner 1400px container so it never bleeds on 320-412px screens */
+    overflow: hidden;
 }
 
 .top-bar__inner {
@@ -601,7 +633,11 @@ button {
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
-    padding: 0 40px;
+    align-items: center;
+    /* min-width: 0 prevents flex children from ignoring container boundaries */
+    min-width: 0;
+    padding: 0 20px;
+    /* Reduced from 40px — safer on narrow screens */
 }
 
 .top-bar__promo-highlight {
@@ -847,7 +883,8 @@ button {
 .categories__slider {
     width: 100%;
     overflow: hidden;
-    padding: 0 40px;
+    /* No side padding here — padding on a flex overflow:hidden container
+       does not clip correctly in all browsers. Use margin on the header instead. */
 }
 
 .categories__track {
@@ -978,6 +1015,10 @@ button {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 40px;
+    /* overflow:hidden is required here because .best-sellers__slider has
+       margin: 0 -15px (negative margin). Without this, the negative-margin
+       element bleeds past the container boundary. */
+    overflow: hidden;
 }
 
 .best-sellers__header {
@@ -1040,6 +1081,7 @@ button {
 .best-sellers__slider {
     margin: 0 -15px;
     /* Offset card padding */
+    overflow: hidden;
 }
 
 .best-sellers__track {
@@ -1735,6 +1777,9 @@ button {
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 40px;
+    /* Contain the horizontal slider: pfy__slider has overflow:hidden but
+       the container needs to be the boundary that clip is measured from */
+    overflow: hidden;
 }
 
 .pfy__header {
@@ -1776,7 +1821,7 @@ button {
 }
 
 .pfy__slider {
-    overflow: visible;
+    overflow: hidden;
 }
 
 .pfy__track {
@@ -1909,6 +1954,8 @@ button {
     color: #111111;
     padding-top: 0;
     border-top: 1px solid #eeeeee;
+    /* Contain any overflowing elements within the footer */
+    overflow: hidden;
 }
 
 .footer__container {
@@ -1948,7 +1995,7 @@ button {
 .newsletter__form {
     display: flex;
     gap: 10px;
-    flex: 0 1 500px;
+    flex: 0 1 45px;
 }
 
 .newsletter__form input {
@@ -1969,10 +2016,10 @@ button {
 }
 
 .newsletter__form button {
-    background: #ff4d00;
+    background: #000080;
     color: #fff;
     border: none;
-    padding: 0 30px;
+    padding: 10px 30px;
     font-weight: 700;
     font-size: 15px;
     border-radius: 4px;
@@ -1982,7 +2029,7 @@ button {
 }
 
 .newsletter__form button:hover {
-    background: #e64500;
+    background: #000080;
     transform: translateY(-2px);
 }
 
@@ -2141,7 +2188,8 @@ button {
 
 @media (max-width: 768px) {
     .footer__container {
-        padding: 0 25px;
+        /* Reduced from 25px — on 320px this gives 270px of content, safer */
+        padding: 0 16px;
     }
 
     .footer__grid {
@@ -2174,5 +2222,22 @@ button {
     .newsletter__form {
         flex: 1 1 100%;
         width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    .newsletter__form {
+        flex-direction: column;
+    }
+
+    .newsletter__form input {
+        width: 100%;
+    }
+
+    .newsletter__form button {
+        width: 100%;
+        padding: 14px 20px;
+        text-align: center;
+        justify-content: center;
     }
 }
