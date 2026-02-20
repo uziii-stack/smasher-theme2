@@ -1816,8 +1816,8 @@ button {
 }
 
 .pfy__btn:hover {
-    border-color: #ff4d00;
-    color: #ff4d00;
+    border-color: #000080;
+    color: #000080;
 }
 
 .pfy__slider {
